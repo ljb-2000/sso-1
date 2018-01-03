@@ -1,11 +1,14 @@
 package controllers
 
 import (
-	"github.com/astaxie/beego"
 	"encoding/json"
-	"github.com/astaxie/beego/logs"
+
 	"models"
 	"common/gokits/encrypt"
+
+	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
+	"common/gokits/answerdata"
 )
 
 type UserController struct {
@@ -22,8 +25,20 @@ type CreateUserOptions struct {
 func (cuc *UserController) Post() {
 	options := new(CreateUserOptions)
 	options = cuc.getCreateUserOptionsFromBody()
-	cuc.CreateUser(options)
+	user := cuc.CreateUser(options)
+	if user == nil {
+		logs.Error("CreateUserController Create User Success: userName=%v", user.Username)
+	} else {
+		data, _ := json.Marshal(answerdata.NewAnswer(answerdata.OK, ""))
+		cuc.Data["result"] = data
+	}
+}
 
+func (cuc *UserController) CreateUser(options *CreateUserOptions) *models.User{
+	user := new(models.User)
+	encryptPass := encrypt.NewEncryption(options.Password).String()
+	result := user.CreateUser(options.UserName, encryptPass)
+	return result
 }
 
 func (cuc *UserController) getCreateUserOptionsFromBody() *CreateUserOptions{
@@ -33,11 +48,6 @@ func (cuc *UserController) getCreateUserOptionsFromBody() *CreateUserOptions{
 	return options
 }
 
-func (cuc *UserController) CreateUser(options *CreateUserOptions) {
-	user := new(models.User)
-	encryptPass := encrypt.NewEncryption(options.Password).String()
-	user.CreateUser(options.UserName, encryptPass)
-}
 
 // 删除用户
 type DeleteUserOptions struct {
@@ -47,8 +57,13 @@ type DeleteUserOptions struct {
 func (cuc *UserController) Delete() {
 	options := new(DeleteUserOptions)
 	options = cuc.getDeleteUserOptionsFromBody()
-	cuc.DeleteUser(options)
-
+	user := cuc.DeleteUser(options)
+	if user == nil {
+		logs.Error("DeleteUserController Delete User Success: userName=%v", user.Username)
+	} else {
+		data, _ := json.Marshal(answerdata.NewAnswer(answerdata.OK, ""))
+		cuc.Data["result"] = data
+	}
 }
 
 func (cuc *UserController) getDeleteUserOptionsFromBody() *DeleteUserOptions{
@@ -58,9 +73,10 @@ func (cuc *UserController) getDeleteUserOptionsFromBody() *DeleteUserOptions{
 	return options
 }
 
-func (cuc *UserController) DeleteUser(options *DeleteUserOptions) {
+func (cuc *UserController) DeleteUser(options *DeleteUserOptions) *models.User {
 	user := new(models.User)
-	user.DeleteUser(options.UserName)
+	result := user.DeleteUser(options.UserName)
+	return result
 }
 
 // 更新用户
@@ -72,8 +88,13 @@ type UpdateUserOptions struct {
 func (cuc *UserController) Put() {
 	options := new(UpdateUserOptions)
 	options = cuc.getUpdateUserOptionsFromBody()
-	cuc.UpdateUser(options)
-
+	user := cuc.UpdateUser(options)
+	if user == nil {
+		logs.Error("UpdateUserController Update User Success: userName=%v", user.Username)
+	} else {
+		data, _ := json.Marshal(answerdata.NewAnswer(answerdata.OK, ""))
+		cuc.Data["result"] = data
+	}
 }
 
 func (cuc *UserController) getUpdateUserOptionsFromBody() *UpdateUserOptions{
@@ -83,9 +104,10 @@ func (cuc *UserController) getUpdateUserOptionsFromBody() *UpdateUserOptions{
 	return options
 }
 
-func (cuc *UserController) UpdateUser(options *UpdateUserOptions) {
+func (cuc *UserController) UpdateUser(options *UpdateUserOptions) *models.User {
 	user := new(models.User)
 	encryptPass := encrypt.NewEncryption(options.Password).String()
-	user.UpdateUser(options.UserName, encryptPass)
+	result := user.UpdateUser(options.UserName, encryptPass)
+	return result
 }
 
